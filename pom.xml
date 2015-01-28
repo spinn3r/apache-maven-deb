@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>apache-maven</groupId>
+    <artifactId>apache-maven</artifactId>
+    <version>3.2.5</version>
+
+    <dependencies>
+
+    </dependencies>
+
+    <properties>
+
+        <package.fullversion>apache-maven-3.2.5</package.fullversion>
+        <package.installdir>/usr/share/apache-maven</package.installdir>
+
+        <maven.download.url>http://mirrors.koehn.com/apache/maven/maven-3/3.2.5/binaries/</maven.download.url>
+        <maven.download.filename>apache-maven-3.2.5-bin.tar.gz</maven.download.filename>
+
+    </properties>
+
+    <build>
+
+        <plugins>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>wagon-maven-plugin</artifactId>
+                <version>1.0-beta-5</version>
+                <executions>
+                    <execution>
+                        <id>download-test-data</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>download-single</goal>
+                        </goals>
+                        <configuration>
+                            <url>${maven.download.url}</url>
+                            <fromFile>${maven.download.filename}</fromFile>
+                            <toDir>${project.build.directory}</toDir>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+
+                <artifactId>jdeb</artifactId>
+                <groupId>org.vafer</groupId>
+                <version>1.1.1</version>
+                <executions>
+                    <execution>
+
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+
+                        <configuration>
+                            <verbose>true</verbose>
+                            <snapshotExpand>true</snapshotExpand>
+                            <!-- expand "SNAPSHOT" to what is in the "USER" env variable -->
+                            <snapshotEnv>USER</snapshotEnv>
+                            <verbose>true</verbose>
+                            <controlDir>${basedir}/src/deb/control</controlDir>
+
+                            <dataSet>
+
+                                <data>
+
+                                    <src>${project.build.directory}/${maven.download.filename}</src>
+                                    <type>archive</type>
+                                    <includes>**</includes>
+                                    <excludes>${package.fullversion}/bin/**,${package.fullversion}/sbin/**</excludes>
+
+                                    <mapper>
+                                        <type>perm</type>
+                                        <strip>1</strip>
+                                        <prefix>${package.installdir}</prefix>
+                                        <filemode>644</filemode>
+                                    </mapper>
+
+                                </data>
+
+                                <data>
+
+                                    <src>${project.build.directory}/${maven.download.filename}</src>
+                                    <type>archive</type>
+                                    <includes>${package.fullversion}/bin/**,${package.fullversion}/sbin/**</includes>
+
+                                    <mapper>
+                                        <type>perm</type>
+                                        <strip>1</strip>
+                                        <prefix>${package.installdir}</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+
+                                </data>
+
+                                <data>
+                                    <type>link</type>
+                                    <linkName>/usr/bin/mvn</linkName>
+                                    <linkTarget>/usr/share/apache-maven/bin/mvn</linkTarget>
+                                    <symlink>true</symlink>
+                                </data>
+
+                            </dataSet>
+
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+
+    </build>
+</project>
